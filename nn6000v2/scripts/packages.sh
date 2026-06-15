@@ -74,7 +74,7 @@ install_openwrt_packages() {
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf oaf open-app-filter \
         luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall \
-        luci-app-tailscale-community
+        luci-app-tailscale-community luci-app-gecoosac
 }
 
 clone_passwall() {
