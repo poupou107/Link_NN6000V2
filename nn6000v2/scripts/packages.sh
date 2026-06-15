@@ -164,6 +164,12 @@ clone_adguardhome() {
         "$OPENWRT_PACKAGES_DIR/luci-app-adguardhome"
 }
 
+clone_gecoosac() {
+    clone_packages "luci-app-gecoosac" \
+        "${GITHUB_BASE}laipeng668/luci-app-gecoosac.git" \
+        "$OPENWRT_PACKAGES_DIR/luci-app-gecoosac"
+}
+
 clone_easytier() {
     local EASYTIER_DIR="$OPENWRT_PACKAGES_DIR/luci-app-easytier"
     local TEMP_DIR="$OPENWRT_PACKAGES_DIR/easytier-temp"
