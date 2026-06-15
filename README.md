@@ -48,6 +48,7 @@
 | **luci-app-samba4**      | SMB 文件共享      |
 | **luci-app-pbr**         | 策略路由          |
 | **luci-app-passwall**    | 科学上网          |
+| **luci-app-gecoosac**    | 集客ac插件        |
 
 ***
 
