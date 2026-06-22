@@ -26,16 +26,12 @@ clean_up() {
     if [[ -d "logs" ]]; then
         \rm -rf "logs/*"
     fi
-    if [[ -d "feeds" ]]; then
-        ./scripts/feeds clean
-    fi
     mkdir -p "tmp"
     echo "1" >"tmp/.build"
 }
 
 reset_feeds_conf() {
     git reset --hard origin/$REPO_BRANCH
-    git clean -f -d
     git pull
     if [[ $COMMIT_HASH != "none" ]]; then
         git checkout $COMMIT_HASH

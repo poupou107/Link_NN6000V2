@@ -19,8 +19,16 @@ update_feeds() {
 
     echo "=== 开始执行 feeds update ==="
     
-    # 执行 feeds update
-    (cd "$BUILD_DIR" && ./scripts/feeds clean && ./scripts/feeds update -a)
+    # 检查 feeds 是否已存在（检测 packages 这个必备 feed）
+    if [[ -d "$BUILD_DIR/feeds/packages/.git" ]]; then
+        # feeds 已存在，只做增量更新（git pull），避免重新克隆
+        echo "Feeds 目录已存在，执行增量更新..."
+        (cd "$BUILD_DIR" && ./scripts/feeds update -a)
+    else
+        # 首次克隆，先清理再完整更新
+        echo "Feeds 目录不存在，执行首次克隆..."
+        (cd "$BUILD_DIR" && ./scripts/feeds clean && ./scripts/feeds update -a)
+    fi
     
     echo "=== feeds update 完成 ==="
 }
