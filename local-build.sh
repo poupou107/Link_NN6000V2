@@ -440,7 +440,7 @@ main() {
         exit 0
     fi
 
-    setup_build_environment
+    #setup_build_environment
     clone_source
     configure_pppoe
     run_update
