@@ -106,7 +106,10 @@ if [[ -d action_build ]]; then
     BUILD_DIR="action_build"
 fi
 
-"$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
+# feeds 已安装则跳过 update.sh（避免重复执行）
+if [[ ! -f "$BASE_PATH/../$BUILD_DIR/feeds/packages.index" ]]; then
+    "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
+fi
 
 apply_config
 fix_netfilter_kmod_clash
