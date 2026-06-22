@@ -6,7 +6,7 @@
 #
 # 目录结构要求：
 #   ~/Desktop/
-#   ├── LINK_NN6000V2/          # 本仓库
+#   ├── Link_NN6000V2/          # 本仓库
 #   └── imm-nss/               # ImmortalWrt 源码目录（由本脚本自动克隆）
 #
 # 用法：
@@ -63,7 +63,7 @@ step()  { echo -e "\n${CYAN}================================================${NC
 # 默认配置
 #-------------------------------------------------------------------------------
 DESKTOP_DIR="${HOME}/Desktop"
-PROJECT_DIR="${DESKTOP_DIR}/LINK_NN6000V2"
+PROJECT_DIR="${DESKTOP_DIR}/Link_NN6000V2"
 BUILD_DIR="${DESKTOP_DIR}/imm-nss"
 DEVICE_MODEL="link_nn6000v2_immwrt"
 REPO_URL="https://github.com/VIKINGYFY/immortalwrt.git"
@@ -89,7 +89,7 @@ show_help() {
 
 目录结构:
   ~/Desktop/
-  ├── LINK_NN6000V2/       # 本仓库 (必须存在)
+  ├── Link_NN6000V2/       # 本仓库 (必须存在)
   └── imm-nss/             # ImmortalWrt 源码 (自动克隆)
 
 示例:
@@ -382,7 +382,7 @@ check_disk_space() {
 check_project_dir() {
     if [[ ! -d "${PROJECT_DIR}" ]]; then
         error "项目目录不存在: ${PROJECT_DIR}"
-        error "请确保 LINK_NN6000V2 仓库已放置在 ~/Desktop/ 下"
+        error "请确保 Link_NN6000V2 仓库已放置在 ~/Desktop/ 下"
         error "当前 ~/Desktop/ 内容:"
         ls -la "${DESKTOP_DIR}" 2>/dev/null || error "  ~/Desktop 目录不存在"
         exit 1
