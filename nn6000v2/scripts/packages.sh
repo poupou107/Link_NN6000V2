@@ -5,6 +5,10 @@ OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
 
 update_golang() {
     if [[ -d ./feeds/packages/lang/golang ]]; then
+        if [[ -d ./feeds/packages/lang/golang/.git ]]; then
+            echo "✓ golang 软件包已存在，跳过更新"
+            return 0
+        fi
         \rm -rf ./feeds/packages/lang/golang
         if ! git clone --depth 1 -b $GOLANG_BRANCH $GOLANG_REPO ./feeds/packages/lang/golang; then
             echo "错误：克隆 golang 仓库 $GOLANG_REPO 失败" >&2
@@ -23,6 +27,15 @@ clone_packages() {
     local post_cmd="${6:-}"
     local move_from="${7:-}"
     local move_to="${8:-}"
+    
+    # 确定最终目标目录：有 move_to 则用它，否则用 target_dir
+    local final_dir="${move_to:-$target_dir}"
+    
+    # 若最终目录已存在且非空，跳过克隆（增量复用）
+    if [[ -d "$final_dir" ]] && [[ -n "$(ls -A "$final_dir" 2>/dev/null)" ]]; then
+        echo "✓ $name 已存在，跳过克隆"
+        return 0
+    fi
     
     if [ -n "$pre_cmd" ]; then
         (cd "$BUILD_DIR" && eval "$pre_cmd") || return 1
@@ -247,6 +260,11 @@ clone_diskman() {
 _sync_luci_lib_docker() {
     local repo_url="${GITHUB_BASE}lisaac/luci-lib-docker.git"
     local luci_lib_docker_dir="$OPENWRT_PACKAGES_DIR/luci-lib-docker"
+    
+    if [[ -d "$luci_lib_docker_dir" ]] && [[ -d "$luci_lib_docker_dir/.git" ]]; then
+        echo "✓ luci-lib-docker 已存在，跳过克隆"
+        return 0
+    fi
     
     mkdir -p "$OPENWRT_PACKAGES_DIR" || return
     
