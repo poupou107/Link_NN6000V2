@@ -18,6 +18,11 @@
 #   ./local-build.sh --help             # 查看帮助
 #===============================================================================
 
+# 检测是否运行在 bash 下，如果不是则自动用 bash 重新执行
+if [ -z "${BASH_VERSION:-}" ]; then
+    exec bash "$0" "$@"
+fi
+
 set -Eeuo pipefail
 set -o errtrace
 
