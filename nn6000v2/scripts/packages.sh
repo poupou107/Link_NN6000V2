@@ -46,17 +46,24 @@ clone_packages() {
     if [ -n "$sparse_pattern" ] && [ -d "$target_dir/.git" ]; then
         echo "更新 $name..."
         (cd "$target_dir" && git pull --ff-only) || true
-        # 重新执行 sparse checkout
-        (cd "$target_dir" && git sparse-checkout init --cone 2>/dev/null && git sparse-checkout set $sparse_pattern && git checkout --quiet) || true
-        if [ -n "$move_from" ] && [ -n "$move_to" ]; then
+        # 重新应用 sparse checkout，恢复上一轮被 mv 移出的文件
+        (cd "$target_dir" && git sparse-checkout reapply 2>/dev/null) || true
+        local _updated=false
+        if [ -n "$move_from" ] && [ -n "$move_to" ] && [ -d "$move_from" ]; then
             rm -rf "$move_to" 2>/dev/null || true
-            mv "$move_from" "$move_to" || return 1
+            mv "$move_from" "$move_to" && _updated=true
+        elif [ -z "$move_from" ]; then
+            # 无 move 逻辑的 sparse simple 克隆
+            _updated=true
         fi
-        if [ -n "$post_cmd" ]; then
-            (cd "$BUILD_DIR" && eval "$post_cmd") || return 1
+        if $_updated; then
+            if [ -n "$post_cmd" ]; then
+                (cd "$BUILD_DIR" && eval "$post_cmd") || return 1
+            fi
+            echo "✓ $name 已更新"
+            return 0
         fi
-        echo "✓ $name 已更新"
-        return 0
+        echo "Sparse checkout 未恢复文件，回退到完整克隆..."
     fi
     
     # === 首次克隆路径 ===
