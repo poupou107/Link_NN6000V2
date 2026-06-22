@@ -1075,6 +1075,13 @@ _docker_stack_update_dockerd_nftables_defaults() {
         return 0
     fi
     
+    # 已配置则跳过后续全部操作
+    if _docker_stack_init_supports_nftables_backend "$dockerd_init" && \
+       grep -q "firewall_backend.*nftables" "$dockerd_config" 2>/dev/null; then
+        _docker_stack_log_debug "dockerd nftables 已配置，跳过"
+        return 0
+    fi
+    
     _docker_stack_fix_dockerd_vendored_checks "$dockerd_makefile" || return 1
     
     _docker_stack_ensure_nftables_init_support "$dockerd_init" || return 1
@@ -1186,6 +1193,14 @@ _docker_stack_update_component() {
         _docker_stack_log_error "未找到 $component Makefile: $mk_path"
         return 1
     }
+    
+    # 读取当前 Makefile 中的版本号，若与目标版本一致则跳过
+    local current_version
+    current_version=$(awk -F"=" '/^PKG_VERSION:=/ {print $NF}' "$mk_path")
+    if [ -n "$explicit_tag" ] && [ "${explicit_tag#v}" = "$current_version" ]; then
+        _docker_stack_log_info "$component 版本未变化 ($explicit_tag)，跳过更新"
+        return 0
+    fi
     
     local repo=""
     repo=$(_docker_stack_resolve_repo_from_makefile "$mk_path") || return 1
