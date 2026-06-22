@@ -6,7 +6,8 @@ OPENWRT_PACKAGES_DIR="$BUILD_DIR/feeds/openwrt_packages"
 update_golang() {
     if [[ -d ./feeds/packages/lang/golang ]]; then
         if [[ -d ./feeds/packages/lang/golang/.git ]]; then
-            echo "✓ golang 软件包已存在，跳过更新"
+            echo "更新 golang 软件包..."
+            (cd ./feeds/packages/lang/golang && git pull --ff-only) || true
             return 0
         fi
         \rm -rf ./feeds/packages/lang/golang
@@ -28,14 +29,37 @@ clone_packages() {
     local move_from="${7:-}"
     local move_to="${8:-}"
     
-    # 确定最终目标目录：有 move_to 则用它，否则用 target_dir
-    local final_dir="${move_to:-$target_dir}"
+    # === 增量更新路径 ===
     
-    # 若最终目录已存在且非空，跳过克隆（增量复用）
-    if [[ -d "$final_dir" ]] && [[ -n "$(ls -A "$final_dir" 2>/dev/null)" ]]; then
-        echo "✓ $name 已存在，跳过克隆"
+    # 场景 1: 简单克隆（无 sparse），target_dir 就是最终目录且带 .git
+    if [ -z "$sparse_pattern" ] && [ -d "$target_dir/.git" ]; then
+        echo "更新 $name..."
+        (cd "$target_dir" && git pull --ff-only) || true
+        if [ -n "$post_cmd" ]; then
+            (cd "$BUILD_DIR" && eval "$post_cmd") || return 1
+        fi
+        echo "✓ $name 已更新"
         return 0
     fi
+    
+    # 场景 2: Sparse + Move，temp 目录中还有 .git 缓存
+    if [ -n "$sparse_pattern" ] && [ -d "$target_dir/.git" ]; then
+        echo "更新 $name..."
+        (cd "$target_dir" && git pull --ff-only) || true
+        # 重新执行 sparse checkout
+        (cd "$target_dir" && git sparse-checkout init --cone 2>/dev/null && git sparse-checkout set $sparse_pattern && git checkout --quiet) || true
+        if [ -n "$move_from" ] && [ -n "$move_to" ]; then
+            rm -rf "$move_to" 2>/dev/null || true
+            mv "$move_from" "$move_to" || return 1
+        fi
+        if [ -n "$post_cmd" ]; then
+            (cd "$BUILD_DIR" && eval "$post_cmd") || return 1
+        fi
+        echo "✓ $name 已更新"
+        return 0
+    fi
+    
+    # === 首次克隆路径 ===
     
     if [ -n "$pre_cmd" ]; then
         (cd "$BUILD_DIR" && eval "$pre_cmd") || return 1
@@ -129,8 +153,6 @@ clone_lucky() {
         "$LUCKY_TEMP/lucky" \
         "$LUCKY_DIR"
 
-    rm -rf "$LUCKY_TEMP"
-
     clone_packages "luci-app-lucky" \
         "$LUCKY_REPO" \
         "$LUCKI_APP_TEMP" \
@@ -139,8 +161,6 @@ clone_lucky() {
         "" \
         "$LUCKI_APP_TEMP/luci-app-lucky" \
         "$LUCI_APP_LUCKY_DIR"
-
-    rm -rf "$LUCKI_APP_TEMP"
     
     local lucky_conf="$LUCKY_DIR/files/luckyuci"
     if [ -f "$lucky_conf" ]; then
@@ -198,7 +218,6 @@ clone_easytier() {
         "$TEMP_DIR/luci-app-easytier" \
         "$EASYTIER_DIR"
 
-    rm -rf "$TEMP_DIR"
 }
 
 clone_oaf() {
@@ -214,8 +233,6 @@ clone_oaf() {
         "oaf open-app-filter luci-app-oaf" \
         "" \
         "mkdir -p \"$OAF_DIR\" && rm -rf \"$OAF_DIR/oaf\" \"$OAF_DIR/open-app-filter\" \"$OAF_DIR/luci-app-oaf\" && mv \"$TEMP_DIR/oaf\" \"$TEMP_DIR/open-app-filter\" \"$TEMP_DIR/luci-app-oaf\" \"$OAF_DIR/\""
-
-    rm -rf "$TEMP_DIR"
 
     local oaf_makefile="$OAF_DIR/oaf/Makefile"
     if [ -f "$oaf_makefile" ] ; then
@@ -262,7 +279,8 @@ _sync_luci_lib_docker() {
     local luci_lib_docker_dir="$OPENWRT_PACKAGES_DIR/luci-lib-docker"
     
     if [[ -d "$luci_lib_docker_dir" ]] && [[ -d "$luci_lib_docker_dir/.git" ]]; then
-        echo "✓ luci-lib-docker 已存在，跳过克隆"
+        echo "更新 luci-lib-docker..."
+        (cd "$luci_lib_docker_dir" && git pull --ff-only) || true
         return 0
     fi
     
@@ -305,7 +323,6 @@ clone_quickfile() {
         "" \
         "mkdir -p \"$QUICKFILE_DIR\" && rm -rf \"$QUICKFILE_DIR/luci-app-quickfile\" \"$QUICKFILE_DIR/quickfile\" && mv \"$TEMP_DIR/luci-app-quickfile\" \"$TEMP_DIR/quickfile\" \"$QUICKFILE_DIR/\""
 
-    rm -rf "$TEMP_DIR"
 }
 
 remove_attendedsysupgrade() {
