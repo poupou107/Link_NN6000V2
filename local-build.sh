@@ -309,7 +309,7 @@ run_build() {
 
     info "开始编译固件..."
     info "设备型号: ${DEVICE_MODEL}"
-    info "编译目录: ${BUILD_DIR}"
+    info "编译目录: ${DESKTOP_DIR}/imm-nss"
     info ""
     info "注意：首次编译时间较长，请耐心等待"
     info "编译过程中可以使用 Ctrl+C 中断"
@@ -317,7 +317,10 @@ run_build() {
 
     export REPO_URL="${REPO_URL}"
     export REPO_BRANCH="${REPO_BRANCH}"
-    export BUILD_DIR="${BUILD_DIR}"
+    # build.sh 内部用 $BASE_PATH/../$BUILD_DIR 拼接路径
+    # 项目 ~/Desktop/Link_NN6000V2 → BASE_PATH/.. = ~/Desktop/
+    # 所以 BUILD_DIR = "imm-nss" 即 ~/Desktop/imm-nss
+    export BUILD_DIR="imm-nss"
 
     bash "${build_script}" "${DEVICE_MODEL}"
 
@@ -331,7 +334,7 @@ collect_firmware() {
     step "6/6 - 收集编译产物"
 
     local firmware_dir="${PROJECT_DIR}/firmware"
-    local target_dir="${BUILD_DIR}/bin/targets"
+    local target_dir="${DESKTOP_DIR}/imm-nss/bin/targets"
 
     if [[ -d "${firmware_dir}" ]]; then
         info "固件目录: ${firmware_dir}"
