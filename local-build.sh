@@ -318,9 +318,11 @@ run_build() {
     export REPO_URL="${REPO_URL}"
     export REPO_BRANCH="${REPO_BRANCH}"
     # build.sh 内部用 $BASE_PATH/../$BUILD_DIR 拼接路径
-    # 项目 ~/Desktop/Link_NN6000V2 → BASE_PATH/.. = ~/Desktop/
-    # 所以 BUILD_DIR = "imm-nss" 即 ~/Desktop/imm-nss
-    export BUILD_DIR="imm-nss"
+    # BASE_PATH = ~/Desktop/Link_NN6000V2/nn6000v2
+    # BASE_PATH/.. = ~/Desktop/Link_NN6000V2/
+    # 源码在 ~/Desktop/imm-nss，需再往上一级：BasePath/../ + ../imm-nss
+    # = ~/Desktop/Link_NN6000V2/../imm-nss = ~/Desktop/imm-nss  ✓
+    export BUILD_DIR="../imm-nss"
 
     bash "${build_script}" "${DEVICE_MODEL}"
 
