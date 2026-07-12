@@ -106,9 +106,17 @@ if [[ -d action_build ]]; then
     BUILD_DIR="action_build"
 fi
 
+# 编译线程数：BUILD_JOBS=1 时强制单线程并输出详细日志（V=s），便于排查错误
+# 未设置则默认并行 (nproc+1)，失败再回退单线程
+if [[ "${BUILD_JOBS:-}" == "1" ]]; then
+    MAKE_FLAGS="-j1 V=s"
+else
+    MAKE_FLAGS="-j${BUILD_JOBS:-$(($(nproc) + 1))}"
+fi
+
 # feeds 已安装则跳过 update.sh（避免重复执行）
 if [[ ! -f "$BASE_PATH/../$BUILD_DIR/feeds/packages.index" ]]; then
-    "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH"
+    "$BASE_PATH/scripts/update.sh" "$REPO_URL" "$REPO_BRANCH" "$BUILD_DIR" "$COMMIT_HASH" "$Dev"
 fi
 
 apply_config
@@ -142,7 +150,7 @@ fi
 
 if [[ "$Dev" != *"nowifi"* ]]; then
     make download -j$(($(nproc) * 2))
-    make -j$(($(nproc) + 1)) || make -j1 V=s
+    make ${MAKE_FLAGS}
 fi
 
 if [[ -d action_build ]]; then
@@ -181,7 +189,7 @@ if [[ "$Dev" != *"nowifi"* ]]; then
     make defconfig
     
     echo "编译无 WiFi 版本..."
-    make -j$(($(nproc) + 1)) || make -j1 V=s
+    make ${MAKE_FLAGS}
     
     echo "复制固件..."
     find "$TARGET_DIR" -type f \( -name "*.bin" -o -name "*.manifest" -o -name "*efi.img.gz" -o -name "*.itb" -o -name "*.fip" -o -name "*.ubi" -o -name "*rootfs.tar.gz" \) | while read -r file; do

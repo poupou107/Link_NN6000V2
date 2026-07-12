@@ -102,16 +102,20 @@ clone_packages() {
 }
 
 install_openwrt_packages() {
-    ./scripts/feeds install -p openwrt_packages -f \
-        xray-core sing-box trojan-plus naiveproxy shadowsocks-libev v2ray-plugin geoview \
+    local pkgs="xray-core sing-box trojan-plus naiveproxy shadowsocks-libev v2ray-plugin geoview \
         microsocks tcping chinadns-ng dns2socks resolveip \
         taskd luci-lib-xterm luci-lib-taskd \
         luci-app-store quickstart luci-app-quickstart luci-app-istorex \
         smartdns luci-app-smartdns luci-theme-argon luci-app-argon-config \
         luci-lib-docker luci-app-lucky luci-app-adguardhome luci-app-easytier \
         luci-app-oaf oaf open-app-filter \
-        luci-app-diskman luci-app-dockerman luci-app-quickfile luci-app-passwall \
-        luci-app-tailscale-community luci-app-gecoosac
+        luci-app-diskman luci-app-dockerman luci-app-quickfile \
+        luci-app-tailscale-community luci-app-gecoosac"
+    # 仅当配置中选中 passwall 时才安装（避免无谓拉起 rust 主机工具链）
+    if config_has "luci-app-passwall"; then
+        pkgs="$pkgs luci-app-passwall"
+    fi
+    ./scripts/feeds install -p openwrt_packages -f $pkgs
 }
 
 clone_passwall() {
@@ -181,7 +185,8 @@ clone_lucky() {
         return 0
     fi
     
-    local patch_line="\\t[ -f \$(TOPDIR)/../nn6000v2/patches/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz ] && install -Dm644 \$(TOPDIR)/../nn6000v2/patches/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz \$(PKG_BUILD_DIR)/\$(PKG_NAME)_\$(PKG_VERSION)_Linux_\$(LUCKY_ARCH).tar.gz"
+    local patches_dir="$BASE_PATH/patches"
+    local patch_line="\\t[ -f ${patches_dir}/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz ] && install -Dm644 ${patches_dir}/lucky_${version}_Linux_\$(LUCKY_ARCH)_wanji.tar.gz \$(PKG_BUILD_DIR)/\$(PKG_NAME)_\$(PKG_VERSION)_Linux_\$(LUCKY_ARCH).tar.gz"
     
     if grep -q "Build/Prepare" "$makefile_path"; then
         sed -i "/Build\\/Prepare/a\\$patch_line" "$makefile_path"

@@ -13,6 +13,9 @@ REPO_URL=$1
 REPO_BRANCH=$2
 BUILD_DIR=$3
 COMMIT_HASH=$4
+DEV=${5:-link_nn6000v2_immwrt}
+# 与 build.sh 使用同一份配置文件作为“是否选中某包”的判据
+CONFIG_FILE="$BASE_PATH/configs/$DEV.config"
 
 # Convert BUILD_DIR to absolute path
 if [[ "$BUILD_DIR" != /* ]]; then
@@ -50,7 +53,10 @@ main() {
     clone_easytier
     clone_oaf
     clone_luci_tailscale
-    clone_passwall
+    # 仅当配置选中 passwall 时才克隆（移除后不再拉起 rust/LLVM）
+    if config_has "luci-app-passwall"; then
+        clone_passwall
+    fi
     install_feeds
     fix_smartdns_makefile
     update_docker_stack
@@ -63,7 +69,9 @@ main() {
     update_dnsmasq_conf
     change_cpuusage
     set_custom_task
-    apply_passwall_tweaks
+    if config_has "luci-app-passwall"; then
+        apply_passwall_tweaks
+    fi
     update_nss_pbuf_performance
     update_nss_diag
     fix_compile_coremark

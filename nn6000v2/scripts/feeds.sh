@@ -13,6 +13,11 @@ update_feeds() {
         echo "src-git openwrt_packages https://github.com/kenzok8/openwrt-packages.git" >>"$FEEDS_PATH"
     fi
 
+    if ! grep -q "openclash" "$FEEDS_PATH"; then
+        [ -z "$(tail -c 1 "$FEEDS_PATH")" ] || echo "" >>"$FEEDS_PATH"
+        echo "src-git openclash https://github.com/vernesong/OpenClash.git" >>"$FEEDS_PATH"
+    fi
+
     if [ ! -f "$BUILD_DIR/include/bpf.mk" ]; then
         touch "$BUILD_DIR/include/bpf.mk"
     fi

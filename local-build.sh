@@ -324,6 +324,10 @@ run_build() {
     # = ~/Desktop/Link_NN6000V2/../imm-nss = ~/Desktop/imm-nss  ✓
     export BUILD_DIR="../imm-nss"
 
+    # 单线程编译 + 详细日志（V=s），方便查看错误
+    # 默认单线程；如需并行可：BUILD_JOBS=8 ./local-build.sh
+    export BUILD_JOBS="${BUILD_JOBS:-1}"
+
     bash "${build_script}" "${DEVICE_MODEL}"
 
     info "编译完成！"
