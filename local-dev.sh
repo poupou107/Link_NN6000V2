@@ -7,9 +7,9 @@
 #   - 之后进入交互菜单，可反复 make menuconfig / kernel_menuconfig
 #   - 可随时添加新插件（feed），并把改动保存回仓库配置
 #
-# 目录约定（可用环境变量覆盖）：
-#   PROJECT_DIR  默认 $HOME/Desktop/Link_NN6000V2
-#   BUILD_DIR    默认 $HOME/Desktop/imm-nss
+# 目录约定（基于脚本自身位置推导，可用环境变量覆盖）：
+#   PROJECT_DIR  默认 = 本脚本所在目录 (Link_NN6000V2)
+#   BUILD_DIR    默认 = 与项目目录同级的 ../imm-nss
 #
 # 用法：
 #   ./local-dev.sh            # 进入交互菜单
@@ -24,10 +24,12 @@ set -Eeuo pipefail
 set -o errtrace
 
 #-------------------------------------------------------------------------------
-# 配置
+# 配置（路径基于脚本自身位置推导，使用相对路径，可用环境变量覆盖）
 #-------------------------------------------------------------------------------
-PROJECT_DIR="${PROJECT_DIR:-$HOME/Desktop/Link_NN6000V2}"
-BUILD_DIR="${BUILD_DIR:-$HOME/Desktop/imm-nss}"
+# 本脚本所在目录（即 Link_NN6000V2 仓库根目录）
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="${PROJECT_DIR:-${SELF_DIR}}"
+BUILD_DIR="${BUILD_DIR:-${SELF_DIR}/../imm-nss}"
 REPO_URL="${REPO_URL:-https://github.com/VIKINGYFY/immortalwrt.git}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 DEVICE_MODEL="link_nn6000v2_immwrt"

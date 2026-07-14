@@ -9,6 +9,11 @@ error_handler() {
 
 trap 'error_handler' ERR
 
+# 日志辅助函数（供 update.sh 及各子脚本使用）
+info()  { echo "[INFO] $*"; }
+warn()  { echo "[WARN] $*" >&2; }
+error() { echo "[ERROR] $*" >&2; }
+
 REPO_URL=$1
 REPO_BRANCH=$2
 BUILD_DIR=$3

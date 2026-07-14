@@ -4,10 +4,11 @@
 #
 # 功能：在本地服务器上模拟 GitHub Actions 工作流，编译 ImmortalWrt 固件
 #
-# 目录结构要求：
-#   ~/Desktop/
-#   ├── Link_NN6000V2/          # 本仓库
+# 目录结构要求（相对于本脚本所在位置）：
+#   <父目录>/
+#   ├── Link_NN6000V2/          # 本仓库（本脚本所在目录）
 #   └── imm-nss/               # ImmortalWrt 源码目录（由本脚本自动克隆）
+#   脚本会自动根据自身的路径推导 PROJECT_DIR / BUILD_DIR，无需放在 ~/Desktop 下。
 #
 # 用法：
 #   chmod +x local-build.sh
@@ -60,11 +61,16 @@ error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 step()  { echo -e "\n${CYAN}================================================${NC}"; echo -e "${CYAN}  步骤: $*${NC}"; echo -e "${CYAN}================================================${NC}"; }
 
 #-------------------------------------------------------------------------------
-# 默认配置
+# 默认配置（路径基于脚本自身位置推导，使用相对路径）
 #-------------------------------------------------------------------------------
-DESKTOP_DIR="${HOME}/Desktop"
-PROJECT_DIR="${DESKTOP_DIR}/Link_NN6000V2"
-BUILD_DIR="${DESKTOP_DIR}/imm-nss"
+# 脚本所在目录（即 Link_NN6000V2 仓库根目录）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 项目目录：脚本所在目录（相对自身的 ./）
+PROJECT_DIR="${SCRIPT_DIR}"
+# 源码构建目录：与项目目录同级的 ../imm-nss
+BUILD_DIR="${SCRIPT_DIR}/../imm-nss"
+# 上级目录（用于磁盘空间检查等，相当于原来的 ~/Desktop）
+DESKTOP_DIR="$(dirname "${SCRIPT_DIR}")"
 DEVICE_MODEL="link_nn6000v2_immwrt"
 REPO_URL="https://github.com/VIKINGYFY/immortalwrt.git"
 REPO_BRANCH="main"
@@ -87,9 +93,9 @@ show_help() {
   --no-wifi              仅编译无 WiFi 版本
   --help                 显示此帮助信息
 
-目录结构:
-  ~/Desktop/
-  ├── Link_NN6000V2/       # 本仓库 (必须存在)
+目录结构 (相对于本脚本所在位置):
+  <父目录>/
+  ├── Link_NN6000V2/       # 本仓库 (必须存在，即本脚本所在目录)
   └── imm-nss/             # ImmortalWrt 源码 (自动克隆)
 
 示例:
@@ -318,10 +324,9 @@ run_build() {
     export REPO_URL="${REPO_URL}"
     export REPO_BRANCH="${REPO_BRANCH}"
     # build.sh 内部用 $BASE_PATH/../$BUILD_DIR 拼接路径
-    # BASE_PATH = ~/Desktop/Link_NN6000V2/nn6000v2
-    # BASE_PATH/.. = ~/Desktop/Link_NN6000V2/
-    # 源码在 ~/Desktop/imm-nss，需再往上一级：BasePath/../ + ../imm-nss
-    # = ~/Desktop/Link_NN6000V2/../imm-nss = ~/Desktop/imm-nss  ✓
+    # BASE_PATH = <脚本目录>/nn6000v2
+    # BASE_PATH/.. = <脚本目录>/  (= PROJECT_DIR)
+    # 源码在 ../imm-nss（与项目目录同级），BasePath/../ + ../imm-nss 即可定位  ✓
     export BUILD_DIR="../imm-nss"
 
     # 单线程编译 + 详细日志（V=s），方便查看错误
@@ -391,9 +396,9 @@ check_disk_space() {
 check_project_dir() {
     if [[ ! -d "${PROJECT_DIR}" ]]; then
         error "项目目录不存在: ${PROJECT_DIR}"
-        error "请确保 Link_NN6000V2 仓库已放置在 ~/Desktop/ 下"
-        error "当前 ~/Desktop/ 内容:"
-        ls -la "${DESKTOP_DIR}" 2>/dev/null || error "  ~/Desktop 目录不存在"
+        error "请确保本脚本位于 Link_NN6000V2 仓库根目录下"
+        error "当前上级目录内容:"
+        ls -la "${DESKTOP_DIR}" 2>/dev/null || error "  上级目录不存在"
         exit 1
     fi
 
